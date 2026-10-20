@@ -1,10 +1,10 @@
-import { TimeIcon } from '@chakra-ui/icons'
+import { TimeIcon } from '../ui/icons'
 import { Box, Flex, HStack, Text } from '@chakra-ui/react'
 import { Link } from 'react-router-dom'
 
 export const Logo = () => (
   <Link to="/" aria-label="HMTIW Senior, início">
-    <HStack spacing={3}>
+    <HStack gap={3}>
       <Flex
         w={10}
         h={10}

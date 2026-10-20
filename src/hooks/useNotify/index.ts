@@ -1,39 +1,34 @@
-import { useToast } from '@chakra-ui/react'
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback } from 'react'
+import { toaster } from '../../components/ui/toaster'
 
 export const useNotify = () => {
-  const toast = useToast()
-  const latestToast = useRef(toast)
-  useEffect(() => {
-    latestToast.current = toast
-  }, [toast])
   const tokenError = useCallback(
     () =>
-      latestToast.current({
+      toaster.create({
         title: 'Sessão expirada',
         description: 'Entre novamente para consultar suas marcações.',
-        status: 'error',
-        isClosable: true
+        type: 'error',
+        closable: true
       }),
     []
   )
   const authenticationError = useCallback(
     () =>
-      latestToast.current({
+      toaster.create({
         title: 'Não foi possível entrar',
         description: 'Confira seu usuário e senha Senior.',
-        status: 'error',
-        isClosable: true
+        type: 'error',
+        closable: true
       }),
     []
   )
   const requestWarning = useCallback(
     () =>
-      latestToast.current({
+      toaster.create({
         title: 'Não foi possível atualizar',
         description: 'Tente novamente em instantes.',
-        status: 'warning',
-        isClosable: true
+        type: 'warning',
+        closable: true
       }),
     []
   )

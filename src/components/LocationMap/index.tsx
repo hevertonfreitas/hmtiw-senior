@@ -1,5 +1,5 @@
-import { ExternalLinkIcon } from '@chakra-ui/icons'
-import { Box, Flex, Link, SimpleGrid, Text } from '@chakra-ui/react'
+import { ExternalLinkIcon } from '../ui/icons'
+import { Box, Flex, Link, SimpleGrid, Text, chakra } from '@chakra-ui/react'
 import { Geolocation } from '../../services/senior/dtos/clocking-event-by-active-user-query'
 
 type LocationMapProps = {
@@ -29,8 +29,7 @@ export const LocationMap = ({ location, collectedAt }: LocationMapProps) => {
       overflow="hidden"
       mb={4}
     >
-      <Box
-        as="iframe"
+      <chakra.iframe
         src={`https://www.openstreetmap.org/export/embed.html?${query}`}
         title="Localização da marcação no OpenStreetMap"
         width="100%"
@@ -48,7 +47,8 @@ export const LocationMap = ({ location, collectedAt }: LocationMapProps) => {
           </Text>
           <Link
             href={mapUrl}
-            isExternal
+            target="_blank"
+            rel="noopener noreferrer"
             title="Abrir no Google Maps"
             color="var(--accent)"
             fontSize="11px"
@@ -57,7 +57,7 @@ export const LocationMap = ({ location, collectedAt }: LocationMapProps) => {
             Ampliar mapa <ExternalLinkIcon ml={1} />
           </Link>
         </Flex>
-        <SimpleGrid columns={2} spacing={4} as="dl">
+        <SimpleGrid columns={2} gap={4} as="dl">
           <Box>
             <Text as="dt" fontSize="10px" color="var(--muted)" mb={1}>
               Latitude

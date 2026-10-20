@@ -3,10 +3,9 @@ import {
   CalendarIcon,
   InfoIcon,
   WarningIcon
-} from '@chakra-ui/icons'
+} from './components/ui/icons'
 import {
   Alert,
-  AlertIcon,
   Avatar,
   Badge,
   Box,
@@ -20,7 +19,7 @@ import {
   Stack,
   Text
 } from '@chakra-ui/react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AuthForm } from './components/AuthForm'
 import {
@@ -34,6 +33,7 @@ import { WorkClock } from './components/WorkClock'
 import { useSeniorContext } from './hooks/useSenior'
 import { AttendanceEvent } from './services/senior/dtos/clocking-event-by-active-user-query'
 import {
+  BALANCE_TOLERANCE_MINUTES,
   buildDay,
   dateFromKey,
   dateKey,
@@ -43,8 +43,12 @@ import {
 } from './utils/attendance'
 
 function App() {
+  const { token } = useSeniorContext()
+  return token ? <Dashboard /> : <AuthForm />
+}
+
+function Dashboard() {
   const {
-    token,
     loading,
     lastUpdated,
     employee,
@@ -58,11 +62,9 @@ function App() {
     refresh
   } = useSeniorContext()
   const [selected, setSelected] = useState<AttendanceEvent | null>(null)
-  useEffect(() => setSelected(null), [token])
-  if (!token) return <AuthForm />
   if (loading && !lastUpdated)
     return (
-      <Stack spacing={6} aria-label="Carregando marcações">
+      <Stack gap={6} aria-label="Carregando marcações">
         <Skeleton h="70px" borderRadius="xl" />
         <Skeleton h="350px" borderRadius="xl" />
         <Skeleton h="200px" borderRadius="xl" />
@@ -102,7 +104,7 @@ function App() {
   const pending = currentMonth.filter((day) => day.open && !day.isToday)
 
   return (
-    <Stack spacing={7}>
+    <Stack gap={7}>
       <Flex justify="space-between" align="flex-end" gap={4} wrap="wrap">
         <Box>
           <Text className="eyebrow" mb={2}>
@@ -119,7 +121,7 @@ function App() {
             Um olhar claro sobre a sua jornada de trabalho.
           </Text>
         </Box>
-        <HStack color="var(--muted)" fontSize="xs" spacing={2} pb={1}>
+        <HStack color="var(--muted)" fontSize="xs" gap={2} pb={1}>
           <CalendarIcon />
           <Text textTransform="capitalize">
             {dateFromKey(today.date).toLocaleDateString('pt-BR', {
@@ -131,8 +133,8 @@ function App() {
         </HStack>
       </Flex>
       {fetchError && (
-        <Alert status="warning" borderRadius="12px">
-          <AlertIcon />
+        <Alert.Root status="warning" borderRadius="12px">
+          <Alert.Indicator />
           <Box flex={1}>
             <Text fontSize="sm">
               Não foi possível carregar os dados mais recentes.
@@ -142,9 +144,9 @@ function App() {
           <Button size="sm" variant="ghost" onClick={refresh}>
             Tentar novamente
           </Button>
-        </Alert>
+        </Alert.Root>
       )}
-      <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6} alignItems="start">
+      <SimpleGrid columns={{ base: 1, lg: 2 }} gap={6} alignItems="start">
         <Box>
           <WorkClock />
         </Box>
@@ -191,7 +193,7 @@ function App() {
           )}
         </Panel>
       </SimpleGrid>
-      <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6}>
+      <SimpleGrid columns={{ base: 1, lg: 2 }} gap={6}>
         <Panel>
           <SectionHeading
             title="Seu ritmo na semana"
@@ -266,14 +268,10 @@ function App() {
               year: 'numeric'
             })}
             action={
-              <Button
-                as={Link}
-                to="/historico"
-                size="xs"
-                variant="ghost"
-                rightIcon={<ArrowForwardIcon />}
-              >
-                Ver histórico
+              <Button asChild size="xs" variant="ghost">
+                <Link to="/historico">
+                  Ver histórico <ArrowForwardIcon />
+                </Link>
               </Button>
             }
           />
@@ -334,21 +332,23 @@ function App() {
             </Text>
           </Flex>
           <Text fontSize="10px" color="var(--muted)" mt={3}>
-            Saldo dos dias completos com registros. Fins de semana contam como
-            extra. Não inclui regras de banco de horas.
+            Saldo dos dias completos com registros, com tolerância diária de ±
+            {BALANCE_TOLERANCE_MINUTES} min nos dias úteis. Fins de semana
+            contam como extra. Não inclui regras de banco de horas.
           </Text>
         </Panel>
       </SimpleGrid>
       {employee && (
         <Panel>
           <Flex gap={5} align="center" wrap="wrap">
-            <HStack spacing={3} flex={1} minW="220px">
-              <Avatar
-                name={employee.name}
+            <HStack gap={3} flex={1} minW="220px">
+              <Avatar.Root
                 size="sm"
                 bg="var(--accent-soft)"
                 color="var(--accent)"
-              />
+              >
+                <Avatar.Fallback name={employee.name} />
+              </Avatar.Root>
               <Box>
                 <Text fontSize="xs" fontWeight={600} textTransform="capitalize">
                   {employee.name?.toLocaleLowerCase('pt-BR')}

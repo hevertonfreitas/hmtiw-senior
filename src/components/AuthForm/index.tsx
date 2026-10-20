@@ -1,4 +1,4 @@
-import { ArrowForwardIcon, CheckCircleIcon, TimeIcon } from '@chakra-ui/icons'
+import { ArrowForwardIcon, CheckCircleIcon, TimeIcon } from '../ui/icons'
 import {
   Box,
   Button,
@@ -50,18 +50,18 @@ export const AuthForm = () => {
           Acompanhe suas horas, entenda sua jornada e tenha cada marcação ao
           alcance de um toque.
         </Text>
-        <Stack spacing={4} mt={8}>
-          <HStack spacing={3}>
+        <Stack gap={4} mt={8}>
+          <HStack gap={3}>
             <TimeIcon color="var(--accent)" />
             <Text fontSize="sm">Sua jornada atualizada ao longo do dia</Text>
           </HStack>
-          <HStack spacing={3}>
+          <HStack gap={3}>
             <CheckCircleIcon color="var(--accent)" />
             <Text fontSize="sm">
               Histórico completo e detalhes dos registros
             </Text>
           </HStack>
-          <HStack spacing={3}>
+          <HStack gap={3}>
             <ArrowForwardIcon color="var(--accent)" />
             <Text fontSize="sm">
               Metas, previsões e exportação em um só lugar

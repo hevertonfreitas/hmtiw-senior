@@ -8,7 +8,7 @@ import { mapClockingEventByActiveUserQuery } from './mappers/clocking-event-by-a
 export const clockingEventByActiveUserQuery = async (token: string) => {
   const events: AttendanceEvent[] = []
   let page = 0
-  let totalPages = 1
+  let totalPages: number
 
   do {
     const { data } =

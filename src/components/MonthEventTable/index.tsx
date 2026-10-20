@@ -1,16 +1,4 @@
-import {
-  Badge,
-  Box,
-  HStack,
-  Table,
-  TableContainer,
-  Tbody,
-  Td,
-  Text,
-  Th,
-  Thead,
-  Tr
-} from '@chakra-ui/react'
+import { Badge, Box, HStack, Table, Text } from '@chakra-ui/react'
 import { useState } from 'react'
 import { useSeniorContext } from '../../hooks/useSenior'
 import { DailyData } from '../../hooks/useSenior/types'
@@ -45,24 +33,35 @@ export const MonthEventTable = ({ data }: MonthEventTableProps) => {
       >
         Deslize a tabela para o lado para ver os totais e o saldo.
       </Text>
-      <TableContainer width="full">
-        <Table className="attendance-table" variant="simple">
-          <Thead>
-            <Tr>
-              <Th>Dia</Th>
-              <Th>Marcações</Th>
-              <Th>Situação</Th>
-              <Th isNumeric>Trabalhado</Th>
-              <Th isNumeric>Saldo estimado</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
+      <Table.ScrollArea width="full">
+        <Table.Root
+          className="attendance-table"
+          variant="line"
+          bg="var(--panel)"
+        >
+          <Table.Header>
+            <Table.Row>
+              <Table.ColumnHeader>Dia</Table.ColumnHeader>
+              <Table.ColumnHeader>Marcações</Table.ColumnHeader>
+              <Table.ColumnHeader>Situação</Table.ColumnHeader>
+              <Table.ColumnHeader textAlign="end">
+                Trabalhado
+              </Table.ColumnHeader>
+              <Table.ColumnHeader textAlign="end">
+                Saldo estimado
+              </Table.ColumnHeader>
+            </Table.Row>
+          </Table.Header>
+          <Table.Body>
             {data.map((day) => {
               const difference = dayBalance(day, dailyTarget)
               return (
-                <Tr key={day.date} className={day.isToday ? 'today-row' : ''}>
-                  <Td>
-                    <HStack spacing={3}>
+                <Table.Row
+                  key={day.date}
+                  className={day.isToday ? 'today-row' : ''}
+                >
+                  <Table.Cell>
+                    <HStack gap={3}>
                       <Text className="numeral" fontWeight={650} fontSize="lg">
                         {String(day.day).padStart(2, '0')}
                       </Text>
@@ -83,9 +82,9 @@ export const MonthEventTable = ({ data }: MonthEventTableProps) => {
                         )}
                       </Box>
                     </HStack>
-                  </Td>
-                  <Td minW="200px" maxW="360px" whiteSpace="normal">
-                    <HStack spacing={1.5} flexWrap="wrap" rowGap={1.5}>
+                  </Table.Cell>
+                  <Table.Cell minW="200px" maxW="360px" whiteSpace="normal">
+                    <HStack gap={1.5} flexWrap="wrap" rowGap={1.5}>
                       {day.events.length ? (
                         day.events.map((event) => (
                           <Box
@@ -116,8 +115,8 @@ export const MonthEventTable = ({ data }: MonthEventTableProps) => {
                         <Text color="var(--muted)">—</Text>
                       )}
                     </HStack>
-                  </Td>
-                  <Td>
+                  </Table.Cell>
+                  <Table.Cell>
                     <Badge
                       fontSize="10px"
                       fontWeight={500}
@@ -136,14 +135,18 @@ export const MonthEventTable = ({ data }: MonthEventTableProps) => {
                         day.open && !day.isToday
                           ? 'var(--warning)'
                           : day.events.length
-                          ? 'var(--accent)'
-                          : 'var(--muted)'
+                            ? 'var(--accent)'
+                            : 'var(--muted)'
                       }
                     >
                       {dayStatus(day)}
                     </Badge>
-                  </Td>
-                  <Td isNumeric className="numeral" fontWeight={600}>
+                  </Table.Cell>
+                  <Table.Cell
+                    textAlign="end"
+                    className="numeral"
+                    fontWeight={600}
+                  >
                     {day.events.length ? duration(day.totalMinutes) : '—'}
                     {day.open && (
                       <Text
@@ -154,9 +157,9 @@ export const MonthEventTable = ({ data }: MonthEventTableProps) => {
                         {day.isToday ? 'parcial' : 'pares completos'}
                       </Text>
                     )}
-                  </Td>
-                  <Td
-                    isNumeric
+                  </Table.Cell>
+                  <Table.Cell
+                    textAlign="end"
                     className="numeral"
                     color={difference < 0 ? 'var(--warning)' : 'var(--accent)'}
                     fontWeight={600}
@@ -164,31 +167,31 @@ export const MonthEventTable = ({ data }: MonthEventTableProps) => {
                     {day.events.length && !day.open
                       ? signedDuration(difference)
                       : '—'}
-                  </Td>
-                </Tr>
+                  </Table.Cell>
+                </Table.Row>
               )
             })}
-            <Tr bg="var(--soft)">
-              <Td colSpan={3}>
+            <Table.Row bg="var(--soft)">
+              <Table.Cell colSpan={3}>
                 <Text fontSize="xs" fontWeight={600}>
                   Resumo dos dias exibidos
                 </Text>
-              </Td>
-              <Td isNumeric className="numeral" fontWeight={700}>
+              </Table.Cell>
+              <Table.Cell textAlign="end" className="numeral" fontWeight={700}>
                 {duration(total)}
-              </Td>
-              <Td
-                isNumeric
+              </Table.Cell>
+              <Table.Cell
+                textAlign="end"
                 className="numeral"
                 fontWeight={700}
                 color={balance < 0 ? 'var(--warning)' : 'var(--accent)'}
               >
                 {signedDuration(balance)}
-              </Td>
-            </Tr>
-          </Tbody>
-        </Table>
-      </TableContainer>
+              </Table.Cell>
+            </Table.Row>
+          </Table.Body>
+        </Table.Root>
+      </Table.ScrollArea>
       <EventDetails event={selected} onClose={() => setSelected(null)} />
     </>
   )

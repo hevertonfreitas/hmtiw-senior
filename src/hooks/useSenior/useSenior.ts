@@ -33,9 +33,9 @@ export const useSenior = () => {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [year, setYear] = useState(new Date().getFullYear())
   const [clockingEvents, setClockingEvents] = useState<AttendanceEvent[]>([])
-  const [loading, setLoading] = useState(false)
   const [authenticating, setAuthenticating] = useState(false)
   const [token, setToken] = useState(() => getTokenCookie() || '')
+  const [loading, setLoading] = useState(() => Boolean(token))
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [fetchError, setFetchError] = useState(false)
   const [customTarget, setCustomTarget] = useState<number | null>(readTarget)
@@ -52,35 +52,44 @@ export const useSenior = () => {
     setLoading(false)
   }, [])
 
-  const loadClockingEvents = useCallback(async () => {
+  const loadClockingEvents = useCallback(() => {
     if (!token) return
     const id = ++requestId.current
+    return clockingEventByActiveUserQuery(token)
+      .then((data) => {
+        if (id !== requestId.current) return
+        setClockingEvents(data)
+        setLastUpdated(new Date())
+        setCurrentDate(new Date())
+      })
+      .catch((error: unknown) => {
+        if (id !== requestId.current) return
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
+          logout()
+          tokenError()
+        } else {
+          setFetchError(true)
+          requestWarning()
+        }
+      })
+      .finally(() => {
+        if (id === requestId.current) setLoading(false)
+      })
+  }, [token, logout, tokenError, requestWarning])
+
+  const refresh = () => {
+    if (!token) return
     setLoading(true)
     setFetchError(false)
-    try {
-      const data = await clockingEventByActiveUserQuery(token)
-      if (id !== requestId.current) return
-      setClockingEvents(data)
-      setLastUpdated(new Date())
-      setCurrentDate(new Date())
-    } catch (error) {
-      if (id !== requestId.current) return
-      if (axios.isAxiosError(error) && error.response?.status === 401) {
-        logout()
-        tokenError()
-      } else {
-        setFetchError(true)
-        requestWarning()
-      }
-    } finally {
-      if (id === requestId.current) setLoading(false)
-    }
-  }, [token, logout, tokenError, requestWarning])
+    return loadClockingEvents()
+  }
 
   const saveToken = (value: string) => {
     const clean = value.trim()
     if (!clean) return
     requestId.current += 1
+    setLoading(true)
+    setFetchError(false)
     setClockingEvents([])
     setLastUpdated(null)
     setToken(clean)
@@ -176,7 +185,7 @@ export const useSenior = () => {
     loading,
     fetchError,
     lastUpdated,
-    refresh: loadClockingEvents,
+    refresh,
     year,
     setYear,
     currentDate,

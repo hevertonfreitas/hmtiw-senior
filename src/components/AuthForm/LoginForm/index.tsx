@@ -1,4 +1,4 @@
-import { Button, FormControl, FormLabel, Input, Stack } from '@chakra-ui/react'
+import { Button, Field, Input, Stack } from '@chakra-ui/react'
 import { useState } from 'react'
 import { AuthCredentialRequest } from '../../../services/senior/dtos/auth-data'
 
@@ -16,11 +16,11 @@ export const LoginForm = ({ onSubmit, loading }: LoginFormProps) => {
   }
   return (
     <form onSubmit={handleSubmit}>
-      <Stack spacing={4}>
-        <FormControl isRequired>
-          <FormLabel htmlFor="senior-user" fontSize="sm">
+      <Stack gap={4}>
+        <Field.Root required>
+          <Field.Label htmlFor="senior-user" fontSize="sm">
             Usuário Senior
-          </FormLabel>
+          </Field.Label>
           <Input
             id="senior-user"
             name="username"
@@ -29,11 +29,11 @@ export const LoginForm = ({ onSubmit, loading }: LoginFormProps) => {
             value={user}
             onChange={(event) => setUser(event.target.value)}
           />
-        </FormControl>
-        <FormControl isRequired>
-          <FormLabel htmlFor="senior-password" fontSize="sm">
+        </Field.Root>
+        <Field.Root required>
+          <Field.Label htmlFor="senior-password" fontSize="sm">
             Senha
-          </FormLabel>
+          </Field.Label>
           <Input
             id="senior-password"
             name="password"
@@ -43,11 +43,11 @@ export const LoginForm = ({ onSubmit, loading }: LoginFormProps) => {
             value={password}
             onChange={(event) => setPassword(event.target.value)}
           />
-        </FormControl>
+        </Field.Root>
         <Button
           type="submit"
           width="full"
-          isLoading={loading}
+          loading={loading}
           loadingText="Conectando"
           mt={2}
         >

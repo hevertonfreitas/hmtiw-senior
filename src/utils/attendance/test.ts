@@ -92,6 +92,70 @@ describe('attendance summaries', () => {
     expect(dayBalance(complete('2026-10-21', '16:00:00'), 480)).toBe(0)
   })
 
+  it.each([
+    ['15:49:00', -11],
+    ['15:50:00', 0],
+    ['15:59:00', 0],
+    ['16:00:00', 0],
+    ['16:01:00', 0],
+    ['16:10:00', 0],
+    ['16:11:00', 11]
+  ])(
+    'applies the inclusive daily tolerance for an exit at %s',
+    (end, balance) => {
+      const day = buildDay(
+        '2026-10-19',
+        dayEvents('2026-10-19', ['08:00:00', end]),
+        now
+      )
+      expect(dayBalance(day, 480)).toBe(balance)
+    }
+  )
+
+  it.each([
+    ['15:20:00', 0],
+    ['15:41:00', 11]
+  ])(
+    'applies tolerance relative to a custom target for an exit at %s',
+    (end, balance) => {
+      const day = buildDay(
+        '2026-10-19',
+        dayEvents('2026-10-19', ['08:00:00', end]),
+        now
+      )
+      expect(dayBalance(day, 450)).toBe(balance)
+    }
+  )
+
+  it.each(['2026-10-17', '2026-10-18'])(
+    'preserves all weekend overtime on %s even within ten minutes',
+    (date) => {
+      const day = buildDay(date, dayEvents(date, ['08:00:00', '08:05:00']), now)
+      expect(dayBalance(day, 480)).toBe(5)
+    }
+  )
+
+  it('applies tolerance to the daily total rather than each working interval', () => {
+    const day = buildDay(
+      '2026-10-19',
+      dayEvents('2026-10-19', ['08:00:00', '11:54:00', '13:00:00', '16:55:00']),
+      now
+    )
+    expect(dayBalance(day, 480)).toBe(-11)
+  })
+
+  it('applies tolerance per day before summing the monthly balance', () => {
+    const events = [
+      ...dayEvents('2026-10-14', ['08:00:00', '16:10:00']),
+      ...dayEvents('2026-10-15', ['08:00:00', '16:10:00']),
+      ...dayEvents('2026-10-16', ['08:00:00', '15:49:00'])
+    ]
+    const october = monthEventsGroup(events, 2026, now)[9]
+    expect(
+      october.reduce((total, day) => total + dayBalance(day, 480), 0)
+    ).toBe(-11)
+  })
+
   it('formats durations beyond a single day and small negative balances correctly', () => {
     expect(duration(1505)).toBe('25:05')
     expect(signedDuration(-5)).toBe('−00:05')
@@ -124,6 +188,26 @@ describe('exit estimates', () => {
 })
 
 describe('CSV reports', () => {
+  it.each([
+    ['15:50:00', '07:50', '00:00'],
+    ['16:10:00', '08:10', '00:00'],
+    ['15:49:00', '07:49', '−00:11'],
+    ['16:11:00', '08:11', '+00:11']
+  ])(
+    'exports the tolerated balance and actual hours for an exit at %s',
+    (end, hours, balance) => {
+      const day = buildDay(
+        '2026-10-19',
+        dayEvents('2026-10-19', ['08:00:00', end]),
+        now
+      )
+      expect(monthCsv([day], 480)).toContain(
+        `"2026-10-19";"08:00:00 / ${end}";"${hours}";"${balance}";"Concluído"`
+      )
+      expect(duration(day.totalMinutes)).toBe(hours)
+    }
+  )
+
   it('exports recorded days and partial totals while leaving pending balances blank', () => {
     const complete = buildDay(
       '2026-10-19',

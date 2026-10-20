@@ -5,6 +5,7 @@ import { twoDigits } from '../format'
 
 export const DEFAULT_TARGET = 480
 export const DEFAULT_TIMEZONE = 'America/Sao_Paulo'
+export const BALANCE_TOLERANCE_MINUTES = 10
 
 export const dateKey = (date: Date, timeZone = DEFAULT_TIMEZONE) => {
   const parts = new Intl.DateTimeFormat('en-US', {
@@ -116,11 +117,13 @@ export const monthEventsGroup = (
   )
 }
 
-/** Only completed, recorded days contribute. No absence or holiday assumptions. */
-export const dayBalance = (day: DailyData, target: number) =>
-  day.events.length && !day.open && !day.isFuture
-    ? day.totalMinutes - (day.isWeekend ? 0 : target)
-    : 0
+/** Apply tolerance per weekday; differences beyond it count in full. */
+export const dayBalance = (day: DailyData, target: number) => {
+  if (!day.events.length || day.open || day.isFuture) return 0
+  if (day.isWeekend) return day.totalMinutes
+  const difference = day.totalMinutes - target
+  return Math.abs(difference) <= BALANCE_TOLERANCE_MINUTES ? 0 : difference
+}
 
 export const dayStatus = (day: DailyData) => {
   if (!day.events.length) return day.isFuture ? 'Aguardando' : 'Sem registros'

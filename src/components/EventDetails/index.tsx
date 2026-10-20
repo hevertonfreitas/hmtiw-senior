@@ -1,17 +1,14 @@
-import { CheckCircleIcon, InfoIcon } from '@chakra-ui/icons'
+import { CheckCircleIcon, InfoIcon } from '../ui/icons'
 import {
   Badge,
   Box,
-  Divider,
+  CloseButton,
   Drawer,
-  DrawerBody,
-  DrawerCloseButton,
-  DrawerContent,
-  DrawerHeader,
-  DrawerOverlay,
   Flex,
   HStack,
   Heading,
+  Portal,
+  Separator,
   SimpleGrid,
   Text
 } from '@chakra-ui/react'
@@ -53,156 +50,184 @@ export const EventDetails = ({
     Math.abs(location.latitude) <= 90 &&
     Math.abs(location.longitude) <= 180
   return (
-    <Drawer isOpen={!!event} onClose={onClose} placement="right" size="md">
-      <DrawerOverlay />
-      <DrawerContent>
-        <DrawerCloseButton aria-label="Fechar detalhes" />
-        <DrawerHeader borderBottomWidth="1px" pt={8}>
-          Detalhes da marcação
-        </DrawerHeader>
-        {event && (
-          <DrawerBody py={7}>
-            <Text className="eyebrow">
-              {dateFromKey(event.dateEvent).toLocaleDateString('pt-BR', {
-                day: '2-digit',
-                month: 'long',
-                year: 'numeric'
-              })}
-            </Text>
-            <Text className="numeral" fontSize="5xl" fontWeight={650} my={2}>
-              {event.timeEvent}
-            </Text>
-            <HStack spacing={2} mb={6} flexWrap="wrap">
-              <Badge colorScheme="brand">{originLabel(event)}</Badge>
-              {event.online !== undefined && (
-                <Badge colorScheme={event.online ? 'brand' : 'orange'}>
-                  {event.online ? 'Online' : 'Offline'}
-                </Badge>
-              )}
-            </HStack>
-            <Flex
-              bg={
-                event.signatureStatus === 'CHECKED'
-                  ? 'var(--accent-soft)'
-                  : 'var(--soft)'
-              }
-              p={4}
-              gap={3}
-              borderRadius="12px"
-              mb={7}
-              align="center"
-            >
-              {event.signatureStatus === 'CHECKED' ? (
-                <CheckCircleIcon color="var(--accent)" />
-              ) : (
-                <InfoIcon color="var(--muted)" />
-              )}
-              <Box>
-                <Text fontSize="sm" fontWeight={600}>
-                  {event.signatureStatus === 'CHECKED'
-                    ? 'Assinatura conferida pela Senior'
-                    : 'Assinatura: ' +
-                      (event.signatureStatus || 'não informada')}
+    <Drawer.Root
+      open={!!event}
+      onOpenChange={({ open }) => {
+        if (!open) onClose()
+      }}
+      placement="end"
+      size="md"
+      lazyMount
+      unmountOnExit
+    >
+      <Portal>
+        <Drawer.Backdrop />
+        <Drawer.Positioner>
+          <Drawer.Content bg="var(--panel)">
+            <Drawer.CloseTrigger asChild position="absolute" top={4} right={4}>
+              <CloseButton aria-label="Fechar detalhes" size="sm" />
+            </Drawer.CloseTrigger>
+            <Drawer.Header borderBottomWidth="1px" pt={8}>
+              <Drawer.Title fontSize="lg">Detalhes da marcação</Drawer.Title>
+            </Drawer.Header>
+            {event && (
+              <Drawer.Body py={7}>
+                <Text className="eyebrow">
+                  {dateFromKey(event.dateEvent).toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric'
+                  })}
                 </Text>
-                <Text fontSize="xs" color="var(--muted)" mt={1}>
-                  Situação retornada pela plataforma de ponto.
+                <Text
+                  className="numeral"
+                  fontSize="5xl"
+                  fontWeight={650}
+                  my={2}
+                >
+                  {event.timeEvent}
                 </Text>
-              </Box>
-            </Flex>
-            <Heading fontSize="sm" mb={4}>
-              Registro e sincronização
-            </Heading>
-            <SimpleGrid as="dl" columns={2} gap={5}>
-              <Field label="NSR" value={event.nsrNumber} />
-              <Field
-                label="Fuso do registro"
-                value={event.timeZone && `UTC${event.timeZone}`}
-              />
-              <Field
-                label="Recebido na plataforma"
-                value={formatInstant(event.createdAt)}
-              />
-              <Field
-                label="Sincronização ARP"
-                value={formatInstant(event.arpSyncDate)}
-              />
-              <Field label="Conexão" value={event.connectionType} />
-              <Field
-                label="Modo de marcação"
-                value={event.mode === 'SINGLE' ? 'Individual' : event.mode}
-              />
-            </SimpleGrid>
-            <Divider my={6} />
-            <Heading fontSize="sm" mb={4}>
-              Dispositivo
-            </Heading>
-            <SimpleGrid as="dl" columns={2} gap={5}>
-              <Field
-                label="Nome / modelo"
-                value={event.device?.name || event.device?.model}
-              />
-              <Field label="Plataforma" value={event.platform} />
-              <Field label="Versão do aplicativo" value={event.appVersion} />
-              <Field
-                label="Autorização"
-                value={
-                  event.device?.status === 'AUTHORIZED'
-                    ? 'Autorizado'
-                    : event.device?.status
-                }
-              />
-              <Field
-                label="Fuso do dispositivo"
-                value={event.deviceTimeZone && `UTC${event.deviceTimeZone}`}
-              />
-            </SimpleGrid>
-            <Divider my={6} />
-            <Heading fontSize="sm" mb={4}>
-              Localização
-            </Heading>
-            {hasLocation && location ? (
-              <LocationMap
-                location={location}
-                collectedAt={formatInstant(location.dateAndTime)}
-              />
-            ) : (
-              <Text fontSize="sm" mb={4} color="var(--muted)">
-                Localização não informada.
-              </Text>
-            )}
-            <Box as="dl">
-              <Field
-                label="Cerca geográfica"
-                value={
-                  event.fenceState === 'NO_FENCE'
-                    ? 'Sem cerca configurada'
-                    : event.fenceState
-                }
-              />
-            </Box>
-            <Divider my={6} />
-            <Heading fontSize="sm" mb={4}>
-              Vínculo
-            </Heading>
-            <SimpleGrid as="dl" columns={1} gap={4}>
-              <Field label="Colaborador" value={event.employee?.name} />
-              <Field label="Empresa" value={event.employee?.company?.name} />
-              <Field
-                label="CNPJ"
-                value={(event.cnpj || event.employee?.company?.cnpj)?.replace(
-                  /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
-                  '$1.$2.$3/$4-$5'
+                <HStack gap={2} mb={6} flexWrap="wrap">
+                  <Badge colorPalette="brand">{originLabel(event)}</Badge>
+                  {event.online !== undefined && (
+                    <Badge colorPalette={event.online ? 'brand' : 'orange'}>
+                      {event.online ? 'Online' : 'Offline'}
+                    </Badge>
+                  )}
+                </HStack>
+                <Flex
+                  bg={
+                    event.signatureStatus === 'CHECKED'
+                      ? 'var(--accent-soft)'
+                      : 'var(--soft)'
+                  }
+                  p={4}
+                  gap={3}
+                  borderRadius="12px"
+                  mb={7}
+                  align="center"
+                >
+                  {event.signatureStatus === 'CHECKED' ? (
+                    <CheckCircleIcon color="var(--accent)" />
+                  ) : (
+                    <InfoIcon color="var(--muted)" />
+                  )}
+                  <Box>
+                    <Text fontSize="sm" fontWeight={600}>
+                      {event.signatureStatus === 'CHECKED'
+                        ? 'Assinatura conferida pela Senior'
+                        : 'Assinatura: ' +
+                          (event.signatureStatus || 'não informada')}
+                    </Text>
+                    <Text fontSize="xs" color="var(--muted)" mt={1}>
+                      Situação retornada pela plataforma de ponto.
+                    </Text>
+                  </Box>
+                </Flex>
+                <Heading fontSize="sm" mb={4}>
+                  Registro e sincronização
+                </Heading>
+                <SimpleGrid as="dl" columns={2} gap={5}>
+                  <Field label="NSR" value={event.nsrNumber} />
+                  <Field
+                    label="Fuso do registro"
+                    value={event.timeZone && `UTC${event.timeZone}`}
+                  />
+                  <Field
+                    label="Recebido na plataforma"
+                    value={formatInstant(event.createdAt)}
+                  />
+                  <Field
+                    label="Sincronização ARP"
+                    value={formatInstant(event.arpSyncDate)}
+                  />
+                  <Field label="Conexão" value={event.connectionType} />
+                  <Field
+                    label="Modo de marcação"
+                    value={event.mode === 'SINGLE' ? 'Individual' : event.mode}
+                  />
+                </SimpleGrid>
+                <Separator my={6} />
+                <Heading fontSize="sm" mb={4}>
+                  Dispositivo
+                </Heading>
+                <SimpleGrid as="dl" columns={2} gap={5}>
+                  <Field
+                    label="Nome / modelo"
+                    value={event.device?.name || event.device?.model}
+                  />
+                  <Field label="Plataforma" value={event.platform} />
+                  <Field
+                    label="Versão do aplicativo"
+                    value={event.appVersion}
+                  />
+                  <Field
+                    label="Autorização"
+                    value={
+                      event.device?.status === 'AUTHORIZED'
+                        ? 'Autorizado'
+                        : event.device?.status
+                    }
+                  />
+                  <Field
+                    label="Fuso do dispositivo"
+                    value={event.deviceTimeZone && `UTC${event.deviceTimeZone}`}
+                  />
+                </SimpleGrid>
+                <Separator my={6} />
+                <Heading fontSize="sm" mb={4}>
+                  Localização
+                </Heading>
+                {hasLocation && location ? (
+                  <LocationMap
+                    location={location}
+                    collectedAt={formatInstant(location.dateAndTime)}
+                  />
+                ) : (
+                  <Text fontSize="sm" mb={4} color="var(--muted)">
+                    Localização não informada.
+                  </Text>
                 )}
-              />
-              <Field
-                label="Centro de custo"
-                value={event.employee?.costCenter?.name}
-              />
-              <Field label="Identificador do registro" value={event.id} />
-            </SimpleGrid>
-          </DrawerBody>
-        )}
-      </DrawerContent>
-    </Drawer>
+                <Box as="dl">
+                  <Field
+                    label="Cerca geográfica"
+                    value={
+                      event.fenceState === 'NO_FENCE'
+                        ? 'Sem cerca configurada'
+                        : event.fenceState
+                    }
+                  />
+                </Box>
+                <Separator my={6} />
+                <Heading fontSize="sm" mb={4}>
+                  Vínculo
+                </Heading>
+                <SimpleGrid as="dl" columns={1} gap={4}>
+                  <Field label="Colaborador" value={event.employee?.name} />
+                  <Field
+                    label="Empresa"
+                    value={event.employee?.company?.name}
+                  />
+                  <Field
+                    label="CNPJ"
+                    value={(
+                      event.cnpj || event.employee?.company?.cnpj
+                    )?.replace(
+                      /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
+                      '$1.$2.$3/$4-$5'
+                    )}
+                  />
+                  <Field
+                    label="Centro de custo"
+                    value={event.employee?.costCenter?.name}
+                  />
+                  <Field label="Identificador do registro" value={event.id} />
+                </SimpleGrid>
+              </Drawer.Body>
+            )}
+          </Drawer.Content>
+        </Drawer.Positioner>
+      </Portal>
+    </Drawer.Root>
   )
 }

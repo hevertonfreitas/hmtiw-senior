@@ -1,8 +1,9 @@
+import type { Mock } from 'vitest'
 import { axiosSenior } from './axios-senior'
 import { clockingEventByActiveUserQuery } from '.'
 
-jest.mock('./axios-senior', () => ({ axiosSenior: { post: jest.fn() } }))
-const post = axiosSenior.post as jest.Mock
+vi.mock('./axios-senior', () => ({ axiosSenior: { post: vi.fn() } }))
+const post = axiosSenior.post as Mock
 
 afterEach(() => post.mockReset())
 

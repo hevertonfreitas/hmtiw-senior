@@ -1,4 +1,4 @@
-import { CalendarIcon, RepeatIcon, TimeIcon } from '@chakra-ui/icons'
+import { CalendarIcon, RepeatIcon, TimeIcon } from '../ui/icons'
 import { Box, Button, Container, Flex, HStack, Text } from '@chakra-ui/react'
 import { ReactNode, useEffect } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
@@ -28,16 +28,16 @@ export const Template = ({ children }: TemplateProps) => {
             py={4}
           >
             <Logo />
-            <HStack spacing={{ base: 1, md: 3 }}>
+            <HStack gap={{ base: 1, md: 3 }}>
               {token && (
                 <>
                   <Button
                     variant="ghost"
                     size="sm"
-                    leftIcon={<RepeatIcon />}
-                    isLoading={loading}
+                    loading={loading}
                     onClick={refresh}
                   >
+                    <RepeatIcon />
                     Atualizar
                   </Button>
                   <Button
@@ -55,7 +55,7 @@ export const Template = ({ children }: TemplateProps) => {
           </Flex>
           {token && (
             <Flex align="center" justify="space-between" pb={4} gap={4}>
-              <HStack as="nav" aria-label="Navegação principal" spacing={1}>
+              <HStack as="nav" aria-label="Navegação principal" gap={1}>
                 <NavLink
                   to="/"
                   end

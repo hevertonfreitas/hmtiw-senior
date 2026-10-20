@@ -4,26 +4,20 @@ import {
   ChevronRightIcon,
   SettingsIcon,
   TimeIcon
-} from '@chakra-ui/icons'
+} from '../ui/icons'
 import {
   Badge,
   Box,
   BoxProps,
   Button,
+  CloseButton,
+  Dialog,
+  Field,
   Flex,
-  FormControl,
-  FormHelperText,
-  FormLabel,
   HStack,
   Heading,
   Input,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
+  Portal,
   Text,
   useDisclosure
 } from '@chakra-ui/react'
@@ -159,7 +153,7 @@ export const EventTimeline = ({
         >
           <Flex align="center" justify="space-between" gap={3}>
             <Box>
-              <HStack spacing={2}>
+              <HStack gap={2}>
                 <Text fontSize="sm" fontWeight={600}>
                   {index % 2 ? 'Saída' : 'Entrada'}
                 </Text>
@@ -172,7 +166,7 @@ export const EventTimeline = ({
                 {event.device?.name ? ` · ${event.device.name}` : ''}
               </Text>
             </Box>
-            <HStack spacing={3}>
+            <HStack gap={3}>
               <Text className="numeral" fontSize="lg" fontWeight={600}>
                 {event.timeEvent.slice(0, 5)}
               </Text>
@@ -188,7 +182,7 @@ export const EventTimeline = ({
 export const TargetSettings = () => {
   const { dailyTarget, setDailyTarget, customTarget, targetFromSchedule } =
     useSeniorContext()
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const { open, onOpen, onClose } = useDisclosure()
   const [value, setValue] = useState(duration(dailyTarget))
   const parts = value.split(':').map(Number)
   const minutes = parts[0] * 60 + parts[1]
@@ -200,68 +194,89 @@ export const TargetSettings = () => {
       <Button
         size="xs"
         variant="ghost"
-        leftIcon={<SettingsIcon />}
         color="var(--muted)"
         onClick={() => {
           setValue(duration(dailyTarget))
           onOpen()
         }}
       >
+        <SettingsIcon />
         Ajustar meta
       </Button>
-      <Modal isOpen={isOpen} onClose={onClose} isCentered>
-        <ModalOverlay />
-        <ModalContent mx={4}>
-          <ModalHeader>Meta diária de trabalho</ModalHeader>
-          <ModalCloseButton aria-label="Fechar ajuste de meta" />
-          <ModalBody>
-            <FormControl>
-              <FormLabel htmlFor="daily-target">
-                Horas de trabalho, sem os intervalos
-              </FormLabel>
-              <Input
-                id="daily-target"
-                type="time"
-                value={value}
-                onChange={(event) => setValue(event.target.value)}
-              />
-              <FormHelperText>
-                {targetFromSchedule
-                  ? `A jornada da Senior sugere ${duration(
-                      targetFromSchedule
-                    )} por dia.`
-                  : 'Sem jornada informada, a meta inicial é de 08:00 por dia.'}{' '}
-                A meta é usada nas estimativas e fica salva neste navegador.
-              </FormHelperText>
-            </FormControl>
-            {customTarget !== null && (
-              <Badge mt={4} colorScheme="brand">
-                Meta personalizada
-              </Badge>
-            )}
-          </ModalBody>
-          <ModalFooter gap={2}>
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setDailyTarget(null)
-                onClose()
-              }}
-            >
-              Usar padrão
-            </Button>
-            <Button
-              isDisabled={!valid}
-              onClick={() => {
-                setDailyTarget(minutes)
-                onClose()
-              }}
-            >
-              Salvar meta
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+      <Dialog.Root
+        open={open}
+        onOpenChange={({ open }) => {
+          if (!open) onClose()
+        }}
+        placement="center"
+        lazyMount
+        unmountOnExit
+      >
+        <Portal>
+          <Dialog.Backdrop />
+          <Dialog.Positioner>
+            <Dialog.Content mx={4} bg="var(--panel)" borderRadius="20px">
+              <Dialog.Header>
+                <Dialog.Title>Meta diária de trabalho</Dialog.Title>
+              </Dialog.Header>
+              <Dialog.CloseTrigger
+                asChild
+                position="absolute"
+                top={3}
+                right={3}
+              >
+                <CloseButton aria-label="Fechar ajuste de meta" size="sm" />
+              </Dialog.CloseTrigger>
+              <Dialog.Body>
+                <Field.Root>
+                  <Field.Label htmlFor="daily-target">
+                    Horas de trabalho, sem os intervalos
+                  </Field.Label>
+                  <Input
+                    id="daily-target"
+                    type="time"
+                    value={value}
+                    onChange={(event) => setValue(event.target.value)}
+                  />
+                  <Field.HelperText>
+                    {targetFromSchedule
+                      ? `A jornada da Senior sugere ${duration(
+                          targetFromSchedule
+                        )} por dia.`
+                      : 'Sem jornada informada, a meta inicial é de 08:00 por dia.'}{' '}
+                    A meta é usada nas estimativas e fica salva neste navegador.
+                  </Field.HelperText>
+                </Field.Root>
+                {customTarget !== null && (
+                  <Badge mt={4} colorPalette="brand">
+                    Meta personalizada
+                  </Badge>
+                )}
+              </Dialog.Body>
+              <Dialog.Footer gap={2}>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setDailyTarget(null)
+                    onClose()
+                  }}
+                >
+                  Usar padrão
+                </Button>
+                <Button
+                  disabled={!valid}
+                  onClick={() => {
+                    setDailyTarget(minutes)
+                    onClose()
+                  }}
+                >
+                  Salvar meta
+                </Button>
+              </Dialog.Footer>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Portal>
+      </Dialog.Root>
     </>
   )
 }

@@ -10,7 +10,7 @@
   --warning: #956416;
   --warning-soft: #fbf4e7;
 }
-body.chakra-ui-dark {
+:root.dark {
   --page: #141c18;
   --panel: #1c2721;
   --ink: #e3ece5;
@@ -46,7 +46,7 @@ button, a { touch-action: manipulation; }
 .week-bar-track { position: relative; height: 115px; display: flex; align-items: flex-end; justify-content: center; }
 .week-bar { position: relative; z-index: 1; width: 100%; max-width: 36px; border-radius: 5px 5px 2px 2px; background: #bccfbb; min-height: 3px; }
 .week-bar.current { background: var(--accent); }
-.attendance-table th { font-size: 10px; letter-spacing: .08em; color: var(--muted); background: var(--soft); border: 0; padding-top: 14px; padding-bottom: 14px; }
+.attendance-table th { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: var(--soft); border: 0; padding-top: 14px; padding-bottom: 14px; }
 .attendance-table td { font-size: 13px; border-color: var(--line); padding-top: 16px; padding-bottom: 16px; }
 .attendance-table tr:last-child td { border-bottom: 0; }
 .attendance-table .today-row { background: var(--accent-soft); }

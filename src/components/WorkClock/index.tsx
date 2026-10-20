@@ -1,4 +1,4 @@
-import { ArrowForwardIcon, CheckCircleIcon, TimeIcon } from '@chakra-ui/icons'
+import { ArrowForwardIcon, CheckCircleIcon, TimeIcon } from '../ui/icons'
 import { Box, Flex, HStack, SimpleGrid, Text } from '@chakra-ui/react'
 import { useSeniorContext } from '../../hooks/useSenior'
 import { dateKey, duration, estimateExit } from '../../utils/attendance'
@@ -16,23 +16,23 @@ export const WorkClock = () => {
   const status = today.open
     ? 'Em jornada'
     : !today.events.length
-    ? 'Ainda não iniciado'
-    : today.totalMinutes >= dailyTarget
-    ? 'Meta atingida'
-    : 'Fora de jornada'
+      ? 'Ainda não iniciado'
+      : today.totalMinutes >= dailyTarget
+        ? 'Meta atingida'
+        : 'Fora de jornada'
 
   return (
     <>
       <Box className="clock-card" p={{ base: 6, md: 8 }}>
         <Flex justify="space-between" align="center" gap={3} mb={5} wrap="wrap">
-          <HStack spacing={2} color="#d1e0d6">
+          <HStack gap={2} color="#d1e0d6">
             <TimeIcon boxSize={4} />
             <Text fontSize="sm" fontWeight={500}>
               Tempo trabalhado hoje
             </Text>
           </HStack>
           <HStack
-            spacing={2}
+            gap={2}
             bg="#ffffff12"
             border="1px solid #ffffff18"
             px={3}
@@ -129,8 +129,8 @@ export const WorkClock = () => {
                     minute: '2-digit'
                   })
                 : today.open
-                ? '—'
-                : lastEvent?.timeEvent.slice(0, 5) || '—'}
+                  ? '—'
+                  : lastEvent?.timeEvent.slice(0, 5) || '—'}
             </Text>
             {exit && dateKey(exit, timeZone) !== today.date && (
               <Text fontSize="10px" color="#aac4b4">

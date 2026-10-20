@@ -1,44 +1,64 @@
-import { extendTheme } from '@chakra-ui/react'
+import { createSystem, defaultConfig } from '@chakra-ui/react'
 
-export const theme = extendTheme({
-  config: { initialColorMode: 'light', useSystemColorMode: false },
-  fonts: {
-    heading:
-      "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    body: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+const font =
+  "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+
+export const theme = createSystem(defaultConfig, {
+  globalCss: {
+    body: { bg: 'var(--page)', color: 'var(--ink)' },
+    '*': { borderColor: 'var(--line)' },
+    '::selection': { background: '#cbe5b7', color: '#193f2e' }
   },
-  colors: {
-    brand: {
-      50: '#edf5ef',
-      100: '#d3e8d9',
-      200: '#acd1b8',
-      300: '#7db58f',
-      400: '#51976b',
-      500: '#317a50',
-      600: '#24613f',
-      700: '#1c4d34',
-      800: '#193f2e',
-      900: '#142f24'
-    }
-  },
-  styles: {
-    global: {
-      body: { bg: 'var(--page)', color: 'var(--ink)' },
-      '*': { borderColor: 'var(--line)' },
-      '::selection': { background: '#cbe5b7', color: '#193f2e' }
-    }
-  },
-  components: {
-    Button: {
-      defaultProps: { colorScheme: 'brand' },
-      baseStyle: { borderRadius: '10px', fontWeight: 600 },
-      sizes: { md: { fontSize: 'sm' } }
+  theme: {
+    tokens: {
+      fonts: { heading: { value: font }, body: { value: font } },
+      colors: {
+        brand: {
+          50: { value: '#edf5ef' },
+          100: { value: '#d3e8d9' },
+          200: { value: '#acd1b8' },
+          300: { value: '#7db58f' },
+          400: { value: '#51976b' },
+          500: { value: '#317a50' },
+          600: { value: '#24613f' },
+          700: { value: '#1c4d34' },
+          800: { value: '#193f2e' },
+          900: { value: '#142f24' },
+          950: { value: '#10261c' }
+        }
+      }
     },
-    Input: { defaultProps: { focusBorderColor: 'brand.400' } },
-    Select: { defaultProps: { focusBorderColor: 'brand.400' } },
-    Modal: {
-      baseStyle: { dialog: { bg: 'var(--panel)', borderRadius: '20px' } }
+    semanticTokens: {
+      colors: {
+        brand: {
+          solid: {
+            value: { base: '{colors.brand.500}', _dark: '{colors.brand.300}' }
+          },
+          contrast: { value: { base: 'white', _dark: '{colors.brand.950}' } },
+          fg: {
+            value: { base: '{colors.brand.700}', _dark: '{colors.brand.200}' }
+          },
+          muted: {
+            value: { base: '{colors.brand.100}', _dark: '{colors.brand.800}' }
+          },
+          subtle: {
+            value: { base: '{colors.brand.50}', _dark: '{colors.brand.900}' }
+          },
+          emphasized: {
+            value: { base: '{colors.brand.200}', _dark: '{colors.brand.700}' }
+          },
+          focusRing: {
+            value: { base: '{colors.brand.500}', _dark: '{colors.brand.300}' }
+          }
+        }
+      }
     },
-    Drawer: { baseStyle: { dialog: { bg: 'var(--panel)' } } }
+    recipes: {
+      button: {
+        base: { colorPalette: 'brand', borderRadius: '10px', fontWeight: 600 },
+        variants: { size: { md: { fontSize: 'sm' } } }
+      },
+      input: { base: { '--focus-color': '{colors.brand.400}' } }
+    }
   }
 })

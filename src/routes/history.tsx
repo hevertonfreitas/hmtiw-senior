@@ -6,19 +6,17 @@ import {
   DownloadIcon,
   TimeIcon,
   WarningIcon
-} from '@chakra-ui/icons'
+} from '../components/ui/icons'
 import {
   Alert,
-  AlertIcon,
   Box,
   Button,
+  Field,
   Flex,
-  FormControl,
-  FormLabel,
   HStack,
   Heading,
   IconButton,
-  Select,
+  NativeSelect,
   SimpleGrid,
   Skeleton,
   Stack,
@@ -35,6 +33,7 @@ import {
 import { MonthEventTable } from '../components/MonthEventTable'
 import { useSeniorContext } from '../hooks/useSenior'
 import {
+  BALANCE_TOLERANCE_MINUTES,
   dayBalance,
   duration,
   exportMonth,
@@ -95,14 +94,14 @@ export const History = () => {
   if (!token) return <AuthForm />
   if (loading && !lastUpdated)
     return (
-      <Stack spacing={6} aria-label="Carregando histórico">
+      <Stack gap={6} aria-label="Carregando histórico">
         <Skeleton h="80px" borderRadius="xl" />
         <Skeleton h="450px" borderRadius="xl" />
       </Stack>
     )
 
   return (
-    <Stack spacing={7}>
+    <Stack gap={7}>
       <Flex justify="space-between" align="flex-end" gap={4} wrap="wrap">
         <Box>
           <Text className="eyebrow" mb={2}>
@@ -122,18 +121,18 @@ export const History = () => {
         <Button
           size="sm"
           variant="outline"
-          leftIcon={<DownloadIcon />}
-          isDisabled={!visible.some((day) => day.events.length)}
+          disabled={!visible.some((day) => day.events.length)}
           onClick={() =>
             exportMonth(visible, dailyTarget, `${year}-${twoDigits(month + 1)}`)
           }
         >
+          <DownloadIcon />
           Exportar CSV
         </Button>
       </Flex>
       {fetchError && (
-        <Alert status="warning" borderRadius="12px">
-          <AlertIcon />
+        <Alert.Root status="warning" borderRadius="12px">
+          <Alert.Indicator />
           <Text fontSize="sm" flex={1}>
             Não foi possível atualizar o histórico.
             {lastUpdated ? ' Exibindo a última consulta.' : ''}
@@ -141,9 +140,9 @@ export const History = () => {
           <Button size="sm" variant="ghost" onClick={refresh}>
             Tentar novamente
           </Button>
-        </Alert>
+        </Alert.Root>
       )}
-      <SimpleGrid columns={{ base: 2, lg: 4 }} spacing={4}>
+      <SimpleGrid columns={{ base: 2, lg: 4 }} gap={4}>
         <StatCard
           label="Horas no mês"
           value={duration(total)}
@@ -182,91 +181,99 @@ export const History = () => {
           justify="space-between"
           wrap="wrap"
         >
-          <HStack spacing={2} flexWrap="wrap">
+          <HStack gap={2} flexWrap="wrap">
             <IconButton
               size="sm"
               variant="ghost"
               aria-label="Mês anterior"
-              icon={<ChevronLeftIcon />}
               onClick={() => navigate(-1)}
-            />
-            <FormControl w={{ base: '110px', md: '160px' }}>
-              <FormLabel
+            >
+              <ChevronLeftIcon />
+            </IconButton>
+            <Field.Root w={{ base: '110px', md: '160px' }}>
+              <Field.Label
                 htmlFor="history-month"
                 fontSize="10px"
                 color="var(--muted)"
                 mb={1}
               >
                 MÊS
-              </FormLabel>
-              <Select
-                id="history-month"
-                size="sm"
-                borderRadius="8px"
-                value={month}
-                onChange={(event) => setMonth(Number(event.target.value))}
-                textTransform="capitalize"
-              >
-                {months.map((name, index) => (
-                  <option key={name} value={index}>
-                    {name}
-                  </option>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl w="80px">
-              <FormLabel
+              </Field.Label>
+              <NativeSelect.Root size="sm">
+                <NativeSelect.Field
+                  id="history-month"
+                  borderRadius="8px"
+                  value={month}
+                  onChange={(event) => setMonth(Number(event.target.value))}
+                  textTransform="capitalize"
+                >
+                  {months.map((name, index) => (
+                    <option key={name} value={index}>
+                      {name}
+                    </option>
+                  ))}
+                </NativeSelect.Field>
+                <NativeSelect.Indicator />
+              </NativeSelect.Root>
+            </Field.Root>
+            <Field.Root w="80px">
+              <Field.Label
                 htmlFor="history-year"
                 fontSize="10px"
                 color="var(--muted)"
                 mb={1}
               >
                 ANO
-              </FormLabel>
-              <Select
-                id="history-year"
-                size="sm"
-                borderRadius="8px"
-                value={year}
-                onChange={(event) => setYear(Number(event.target.value))}
-              >
-                {years.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </Select>
-            </FormControl>
+              </Field.Label>
+              <NativeSelect.Root size="sm">
+                <NativeSelect.Field
+                  id="history-year"
+                  borderRadius="8px"
+                  value={year}
+                  onChange={(event) => setYear(Number(event.target.value))}
+                >
+                  {years.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </NativeSelect.Field>
+                <NativeSelect.Indicator />
+              </NativeSelect.Root>
+            </Field.Root>
             <IconButton
               size="sm"
               variant="ghost"
               aria-label="Próximo mês"
-              icon={<ChevronRightIcon />}
               onClick={() => navigate(1)}
-            />
+            >
+              <ChevronRightIcon />
+            </IconButton>
           </HStack>
-          <FormControl w={{ base: 'full', sm: '190px' }}>
-            <FormLabel
+          <Field.Root w={{ base: 'full', sm: '190px' }}>
+            <Field.Label
               htmlFor="history-status"
               fontSize="10px"
               color="var(--muted)"
               mb={1}
             >
               SITUAÇÃO
-            </FormLabel>
-            <Select
-              id="history-status"
-              size="sm"
-              borderRadius="8px"
-              value={status}
-              onChange={(event) => setStatus(event.target.value)}
-            >
-              <option value="all">Todas as situações</option>
-              <option value="complete">Concluído</option>
-              <option value="pending">Pendente</option>
-              <option value="active">Em andamento</option>
-            </Select>
-          </FormControl>
+            </Field.Label>
+            <NativeSelect.Root size="sm">
+              <NativeSelect.Field
+                id="history-status"
+                borderRadius="8px"
+                value={status}
+                onChange={(event) => setStatus(event.target.value)}
+              >
+                <option value="all">Todas as situações</option>
+                <option value="complete">Concluído</option>
+                <option value="pending">Pendente</option>
+                <option value="active">Em andamento</option>
+              </NativeSelect.Field>
+              <NativeSelect.Indicator />
+            </NativeSelect.Root>
+          </Field.Root>
         </Flex>
         <Flex
           px={{ base: 4, md: 5 }}
@@ -276,24 +283,20 @@ export const History = () => {
           gap={3}
           wrap="wrap"
         >
-          <FormControl display="flex" alignItems="center" w="auto">
-            <Switch
-              id="show-empty"
-              size="sm"
-              colorScheme="brand"
-              isChecked={showEmpty}
-              onChange={(event) => setShowEmpty(event.target.checked)}
-            />
-            <FormLabel
-              htmlFor="show-empty"
-              mb={0}
-              ml={2}
-              fontSize="xs"
-              color="var(--muted)"
-            >
+          <Switch.Root
+            size="sm"
+            colorPalette="brand"
+            checked={showEmpty}
+            onCheckedChange={({ checked }) => setShowEmpty(checked)}
+          >
+            <Switch.HiddenInput id="show-empty" />
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
+            <Switch.Label fontSize="xs" color="var(--muted)">
               Mostrar dias sem registros
-            </FormLabel>
-          </FormControl>
+            </Switch.Label>
+          </Switch.Root>
           <TargetSettings />
         </Flex>
         {visible.length ? (
@@ -315,10 +318,11 @@ export const History = () => {
         <CalendarIcon color="var(--muted)" mt={1} />
         <Text fontSize="11px" color="var(--muted)" lineHeight={1.8}>
           O saldo é uma estimativa com meta de {duration(dailyTarget)} por dia
-          útil com registros completos. Fins de semana contam como extra. Dias
-          sem registros ou pendentes não geram débito. Feriados, justificativas,
-          tolerâncias e regras de banco de horas não estão disponíveis nesta
-          consulta.
+          útil com registros completos. Diferenças diárias de até ±
+          {BALANCE_TOLERANCE_MINUTES} min são zeradas; acima disso, a diferença
+          conta por inteiro. Fins de semana contam como extra. Dias sem
+          registros ou pendentes não geram débito. Feriados, justificativas e
+          regras de banco de horas não estão disponíveis nesta consulta.
         </Text>
       </Flex>
     </Stack>
