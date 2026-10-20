@@ -1,40 +1,35 @@
-import { AxiosError, AxiosResponse } from 'axios'
 import { axiosSenior } from './axios-senior'
-import { ClockingEventByActiveUserQueryResponse } from './dtos/clocking-event-by-active-user-query'
+import {
+  AttendanceEvent,
+  ClockingEventByActiveUserQueryResponse
+} from './dtos/clocking-event-by-active-user-query'
 import { mapClockingEventByActiveUserQuery } from './mappers/clocking-event-by-active-user-query-mapper'
 
-const requiredBody = {
-  filter: {
-    activePlatformUser: true,
-    pageInfo: {
-      page: 0,
-      pageSize: '731'
-    },
-    nameSearch: '',
-    sort: {
-      field: null,
-      order: 'ASC'
-    }
-  }
-}
-
 export const clockingEventByActiveUserQuery = async (token: string) => {
-  try {
-    const { data } = await axiosSenior.post<
-      any,
-      AxiosResponse<ClockingEventByActiveUserQueryResponse>
-    >(
-      't/senior.com.br/bridge/1.0/rest/hcm/pontomobile/queries/clockingEventByActiveUserQuery',
-      requiredBody,
-      {
-        headers: {
-          Authorization: 'bearer ' + token
-        }
-      }
-    )
+  const events: AttendanceEvent[] = []
+  let page = 0
+  let totalPages = 1
 
-    return mapClockingEventByActiveUserQuery(data)
-  } catch (error) {
-    return error as AxiosError
-  }
+  do {
+    const { data } =
+      await axiosSenior.post<ClockingEventByActiveUserQueryResponse>(
+        't/senior.com.br/bridge/1.0/rest/hcm/pontomobile/queries/clockingEventByActiveUserQuery',
+        {
+          filter: {
+            activePlatformUser: true,
+            pageInfo: { page, pageSize: '731' },
+            nameSearch: '',
+            sort: { field: null, order: 'ASC' }
+          }
+        },
+        { headers: { Authorization: 'bearer ' + token }, timeout: 30000 }
+      )
+    events.push(...mapClockingEventByActiveUserQuery(data))
+    totalPages = data.totalPages
+    page += 1
+  } while (page < totalPages)
+
+  return Array.from(
+    new Map(events.map((event) => [event.id, event])).values()
+  ).sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
 }

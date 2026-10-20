@@ -1,5 +1,5 @@
 import { createContext } from 'react'
-import { useSenior } from '../hooks/useSenior'
+import { useSenior } from '../hooks/useSenior/useSenior'
 
 export type SeniorContextType = ReturnType<typeof useSenior>
 

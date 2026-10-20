@@ -1,40 +1,41 @@
 import { useToast } from '@chakra-ui/react'
+import { useCallback, useEffect, useRef } from 'react'
 
 export const useNotify = () => {
-  const t = useToast()
-
-  const tokenError = () =>
-    t({
-      title: 'Token inválido!',
-      description: 'O token informado é inválido',
-      status: 'error'
-    })
-
-  const authenticationError = () =>
-    t({
-      title: 'usuário/senha inválido!',
-      description: 'O usuário/senha informado é inválido',
-      status: 'error'
-    })
-
-  const requestWarning = () =>
-    t({
-      title: 'Ops..!',
-      description: 'Ocorreu um erro ao buscar os dados!',
-      status: 'warning'
-    })
-
-  const congratulations = () =>
-    t({
-      title: 'Parabéns',
-      description: 'Você já trabalhou o suficiente!',
-      status: 'success'
-    })
-
-  return {
-    tokenError,
-    requestWarning,
-    congratulations,
-    authenticationError
-  }
+  const toast = useToast()
+  const latestToast = useRef(toast)
+  useEffect(() => {
+    latestToast.current = toast
+  }, [toast])
+  const tokenError = useCallback(
+    () =>
+      latestToast.current({
+        title: 'Sessão expirada',
+        description: 'Entre novamente para consultar suas marcações.',
+        status: 'error',
+        isClosable: true
+      }),
+    []
+  )
+  const authenticationError = useCallback(
+    () =>
+      latestToast.current({
+        title: 'Não foi possível entrar',
+        description: 'Confira seu usuário e senha Senior.',
+        status: 'error',
+        isClosable: true
+      }),
+    []
+  )
+  const requestWarning = useCallback(
+    () =>
+      latestToast.current({
+        title: 'Não foi possível atualizar',
+        description: 'Tente novamente em instantes.',
+        status: 'warning',
+        isClosable: true
+      }),
+    []
+  )
+  return { tokenError, authenticationError, requestWarning }
 }

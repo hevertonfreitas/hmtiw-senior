@@ -1,55 +1,24 @@
 import { WorkingHours } from '../../hooks/useSenior/types'
 import { twoDigits } from '../format'
 
-const isOdd = (value: number) => value % 2 !== 0
+/** An unmatched mark only accrues time with an explicit current instant. */
+export const workedMinutes = (events: Date[], currentDate?: Date) => {
+  const ordered = [...events].sort((a, b) => a.getTime() - b.getTime())
+  let milliseconds = 0
 
-export const timeSpent = (events: Date[], currentDate?: Date): WorkingHours => {
-  const open = isOdd(events.length)
-
-  if (events.length === 0) {
-    return { hours: twoDigits(0), minutes: twoDigits(0), open }
+  for (let i = 0; i < ordered.length; i += 2) {
+    const end = ordered[i + 1] ?? currentDate
+    if (end) milliseconds += Math.max(0, end.getTime() - ordered[i].getTime())
   }
 
-  if (open) events.push(currentDate ?? new Date())
-
-  let time = 0
-
-  for (let i = 0; i < events.length; i = i + 2) {
-    time += (events[i + 1].getTime() - events[i].getTime()) / 1000
-  }
-
-  const hours = time / 3600
-  const minutes = (hours % 1) * 60
-
-  return {
-    hours: twoDigits(Math.floor(hours)),
-    minutes: twoDigits(Math.floor(minutes)),
-    open
-  }
+  return Math.floor(milliseconds / 60000)
 }
 
-export const monthEventsGroup = (clockingEvents: Date[], year: number) => {
-  const days = Array.from({ length: 12 }, () =>
-    Array.from({ length: 31 }, () => new Array(0))
-  )
-
-  const dates = clockingEvents.filter((date) => date.getFullYear() === year)
-
-  dates.forEach((date) => {
-    days[date.getMonth()][date.getDate() - 1].push(date)
-  })
-
-  return days.map((month) => {
-    return month.map((day, index) => {
-      const timestamps = day
-        .map((date) => date.toLocaleTimeString('en-GB'))
-        .join('  ')
-
-      return {
-        timestamps,
-        totalHours: timeSpent(day),
-        day: index + 1
-      }
-    })
-  })
+export const timeSpent = (events: Date[], currentDate?: Date): WorkingHours => {
+  const total = workedMinutes(events, currentDate)
+  return {
+    hours: twoDigits(Math.floor(total / 60)),
+    minutes: twoDigits(total % 60),
+    open: events.length % 2 !== 0
+  }
 }

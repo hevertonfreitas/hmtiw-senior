@@ -1,201 +1,195 @@
 import {
+  Badge,
+  Box,
+  HStack,
   Table,
   TableContainer,
   Tbody,
   Td,
+  Text,
   Th,
   Thead,
   Tr
 } from '@chakra-ui/react'
+import { useState } from 'react'
+import { useSeniorContext } from '../../hooks/useSenior'
 import { DailyData } from '../../hooks/useSenior/types'
+import { AttendanceEvent } from '../../services/senior/dtos/clocking-event-by-active-user-query'
+import {
+  dateFromKey,
+  dayBalance,
+  dayStatus,
+  duration,
+  signedDuration
+} from '../../utils/attendance'
+import { EventDetails } from '../EventDetails'
 
-export type MonthEventTableProps = {
-  data: DailyData[]
-  year: number
-  month: number
-}
+export type MonthEventTableProps = { data: DailyData[] }
 
-let totalMinutesMonth = 0
-const expectedHoursPerDay = 8
-const minutesPerHour = 60
-const minutesTolerance = 10
-
-const withinTolerance = (hours: number, minutes: number) => {
-  return (
-    (hours === expectedHoursPerDay && minutes <= minutesTolerance) ||
-    (hours === expectedHoursPerDay - 1 &&
-      minutes >= minutesPerHour - minutesTolerance)
+export const MonthEventTable = ({ data }: MonthEventTableProps) => {
+  const { dailyTarget } = useSeniorContext()
+  const [selected, setSelected] = useState<AttendanceEvent | null>(null)
+  const total = data.reduce((sum, day) => sum + day.totalMinutes, 0)
+  const balance = data.reduce(
+    (sum, day) => sum + dayBalance(day, dailyTarget),
+    0
   )
-}
-
-const belowExpected = (hours: number, minutes: number) => {
   return (
-    hours < expectedHoursPerDay ||
-    (hours < expectedHoursPerDay && minutes < minutesPerHour - minutesTolerance)
-  )
-}
-
-const isSaturdayOrSunday = (year: number, month: number, day: number) => {
-  const date = new Date()
-  date.setFullYear(year, month, day)
-
-  const weekendDays = [
-    'Sunday',
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    'Saturday'
-  ]
-  const currentDayOfWeek = weekendDays[date.getDay()]
-
-  return !!currentDayOfWeek
-}
-
-const ajustTime = (time: string | number) => {
-  if (time < 10) {
-    return `0${Number(time)}`
-  }
-
-  return time
-}
-
-const calculateHoursDifference = (
-  year: number,
-  month: number,
-  day: number,
-  hours: string,
-  minutes: string
-) => {
-  const workedHours = Number(hours)
-  const workedMinutes = Number(minutes)
-
-  if (workedHours === 0 && workedMinutes === 0) {
-    return 'Folga'
-  }
-
-  if (isSaturdayOrSunday(year, month, day)) {
-    return `${hours}:${ajustTime(minutes)} (Extra)`
-  }
-
-  if (withinTolerance(workedHours, workedMinutes)) {
-    return '0'
-  }
-
-  const hoursDifference = workedHours - expectedHoursPerDay
-  const minutesDifference = minutesPerHour - workedMinutes
-
-  if (belowExpected(workedHours, workedMinutes)) {
-    let ajustHours: number | string = hoursDifference + 1
-    totalMinutesMonth = totalMinutesMonth - minutesDifference
-    totalMinutesMonth = totalMinutesMonth - ajustHours * minutesPerHour * -1
-    ajustHours = ajustHours < 0 ? ajustHours : `-${ajustHours}`
-
-    return `${ajustHours}:${ajustTime(minutesDifference)}`
-  }
-
-  if (hoursDifference === 0 && workedMinutes > minutesTolerance) {
-    totalMinutesMonth += workedMinutes
-
-    return `+0:${ajustTime(minutes)}`
-  }
-
-  totalMinutesMonth = totalMinutesMonth + workedMinutes
-  totalMinutesMonth = totalMinutesMonth + hoursDifference * minutesPerHour
-
-  return `+${hoursDifference}:${ajustTime(minutes)}`
-}
-
-const minutesToHoursAndMinutes = (totalMinutes: number) => {
-  if (totalMinutes < 0) {
-    totalMinutes = totalMinutes * -1
-  }
-
-  const hours = Math.floor(totalMinutes / minutesPerHour)
-  const minutes = totalMinutes % minutesPerHour
-
-  return `${hours}:${ajustTime(minutes)}`
-}
-
-export const MonthEventTable = ({
-  data,
-  year,
-  month
-}: MonthEventTableProps) => {
-  totalMinutesMonth = 0
-
-  const colorRule = (
-    open: boolean,
-    hours: string,
-    minutes: string,
-    day: number
-  ) => {
-    if (open) {
-      return 'red.400'
-    }
-
-    if (isSaturdayOrSunday(year, month, day)) {
-      return 'green.300'
-    }
-
-    const numberHours = Number(hours)
-    const numberMinutes = Number(minutes)
-
-    if (withinTolerance(numberHours, numberMinutes)) {
-      return 'blue.400'
-    }
-
-    if (belowExpected(numberHours, numberMinutes)) {
-      return 'red.400'
-    }
-
-    return 'green.400'
-  }
-
-  return (
-    <TableContainer width="full">
-      <Table variant="striped">
-        <Thead>
-          <Tr>
-            <Th>Dia</Th>
-            <Th>Registros</Th>
-            <Th isNumeric>Total</Th>
-            <Th isNumeric>Diferença</Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-          {data.map(
-            ({ day, timestamps, totalHours: { hours, open, minutes } }) => (
-              <Tr key={day}>
-                <Td>{day}</Td>
-                <Td whiteSpace={{ base: 'break-spaces', md: 'normal' }}>
-                  {timestamps}
-                </Td>
-                <Td color={colorRule(open, hours, minutes, day)} isNumeric>
-                  {open ? 'Incompleto' : `${hours}:${minutes}`}{' '}
-                </Td>
-                <Td color={colorRule(open, hours, minutes, day)} isNumeric>
-                  {!open &&
-                    calculateHoursDifference(year, month, day, hours, minutes)}
-                </Td>
-              </Tr>
-            )
-          )}
-          <Tr>
-            <Td colSpan={3} isNumeric>
-              Total
-            </Td>
-            <Td
-              color={totalMinutesMonth < 0 ? 'red.400' : 'green.400'}
-              isNumeric
-            >
-              {totalMinutesMonth < 0 ? '-' : '+'}
-              {minutesToHoursAndMinutes(totalMinutesMonth)}
-            </Td>
-          </Tr>
-        </Tbody>
-      </Table>
-    </TableContainer>
+    <>
+      <Text
+        display={{ base: 'block', md: 'none' }}
+        px={4}
+        pb={3}
+        fontSize="10px"
+        color="var(--muted)"
+      >
+        Deslize a tabela para o lado para ver os totais e o saldo.
+      </Text>
+      <TableContainer width="full">
+        <Table className="attendance-table" variant="simple">
+          <Thead>
+            <Tr>
+              <Th>Dia</Th>
+              <Th>Marcações</Th>
+              <Th>Situação</Th>
+              <Th isNumeric>Trabalhado</Th>
+              <Th isNumeric>Saldo estimado</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {data.map((day) => {
+              const difference = dayBalance(day, dailyTarget)
+              return (
+                <Tr key={day.date} className={day.isToday ? 'today-row' : ''}>
+                  <Td>
+                    <HStack spacing={3}>
+                      <Text className="numeral" fontWeight={650} fontSize="lg">
+                        {String(day.day).padStart(2, '0')}
+                      </Text>
+                      <Box>
+                        <Text fontSize="11px" textTransform="capitalize">
+                          {dateFromKey(day.date)
+                            .toLocaleDateString('pt-BR', { weekday: 'short' })
+                            .replace('.', '')}
+                        </Text>
+                        {day.isToday && (
+                          <Text
+                            fontSize="9px"
+                            color="var(--accent)"
+                            fontWeight={700}
+                          >
+                            HOJE
+                          </Text>
+                        )}
+                      </Box>
+                    </HStack>
+                  </Td>
+                  <Td minW="200px" maxW="360px" whiteSpace="normal">
+                    <HStack spacing={1.5} flexWrap="wrap" rowGap={1.5}>
+                      {day.events.length ? (
+                        day.events.map((event) => (
+                          <Box
+                            as="button"
+                            key={event.id}
+                            px={2}
+                            py={1}
+                            borderRadius="6px"
+                            border="1px solid var(--line)"
+                            bg="var(--panel)"
+                            fontSize="11px"
+                            className="numeral"
+                            _hover={{
+                              borderColor: 'var(--accent)',
+                              color: 'var(--accent)'
+                            }}
+                            onClick={() => setSelected(event)}
+                            aria-label={`Detalhes da marcação de ${dateFromKey(
+                              day.date
+                            ).toLocaleDateString('pt-BR')} às ${
+                              event.timeEvent
+                            }`}
+                          >
+                            {event.timeEvent.slice(0, 5)}
+                          </Box>
+                        ))
+                      ) : (
+                        <Text color="var(--muted)">—</Text>
+                      )}
+                    </HStack>
+                  </Td>
+                  <Td>
+                    <Badge
+                      fontSize="10px"
+                      fontWeight={500}
+                      textTransform="none"
+                      borderRadius="full"
+                      px={2.5}
+                      py={1}
+                      bg={
+                        day.open
+                          ? day.isToday
+                            ? 'var(--accent-soft)'
+                            : 'var(--warning-soft)'
+                          : 'var(--soft)'
+                      }
+                      color={
+                        day.open && !day.isToday
+                          ? 'var(--warning)'
+                          : day.events.length
+                          ? 'var(--accent)'
+                          : 'var(--muted)'
+                      }
+                    >
+                      {dayStatus(day)}
+                    </Badge>
+                  </Td>
+                  <Td isNumeric className="numeral" fontWeight={600}>
+                    {day.events.length ? duration(day.totalMinutes) : '—'}
+                    {day.open && (
+                      <Text
+                        fontSize="9px"
+                        fontWeight={400}
+                        color="var(--muted)"
+                      >
+                        {day.isToday ? 'parcial' : 'pares completos'}
+                      </Text>
+                    )}
+                  </Td>
+                  <Td
+                    isNumeric
+                    className="numeral"
+                    color={difference < 0 ? 'var(--warning)' : 'var(--accent)'}
+                    fontWeight={600}
+                  >
+                    {day.events.length && !day.open
+                      ? signedDuration(difference)
+                      : '—'}
+                  </Td>
+                </Tr>
+              )
+            })}
+            <Tr bg="var(--soft)">
+              <Td colSpan={3}>
+                <Text fontSize="xs" fontWeight={600}>
+                  Resumo dos dias exibidos
+                </Text>
+              </Td>
+              <Td isNumeric className="numeral" fontWeight={700}>
+                {duration(total)}
+              </Td>
+              <Td
+                isNumeric
+                className="numeral"
+                fontWeight={700}
+                color={balance < 0 ? 'var(--warning)' : 'var(--accent)'}
+              >
+                {signedDuration(balance)}
+              </Td>
+            </Tr>
+          </Tbody>
+        </Table>
+      </TableContainer>
+      <EventDetails event={selected} onClose={() => setSelected(null)} />
+    </>
   )
 }

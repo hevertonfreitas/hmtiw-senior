@@ -19,7 +19,7 @@ export default defineConfig({
         name: 'HMTIW Senior',
         short_name: 'HMTIW',
         description: 'HMTIW Senior',
-        theme_color: '#ffffff',
+        theme_color: '#f6f7f3',
         icons: [
           {
             src: '/icon.png',

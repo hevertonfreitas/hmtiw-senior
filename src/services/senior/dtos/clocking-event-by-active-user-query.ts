@@ -1,39 +1,43 @@
+/** Dates and times are strings in the Senior API, not JavaScript Date objects. */
 export interface ClockingEventByActiveUserQueryResponse {
   count: number
   totalPages: number
-  result: Result[]
+  result: ClockingEvent[]
 }
 
-export interface Result {
+export interface ClockingEvent {
   id: string
-  dateEvent: Date
+  dateEvent: string
   timeEvent: string
-  cnpj: string
-  pis: string
-  createdAt: string
-  appVersion: AppVersion
-  platform: Platform
-  device: Device
-  geolocation: Geolocation
-  employee: Employee
-  readed: boolean
-  fenceState: FenceState
-  use: number
-  appointmentId: string
-  mode: Mode
-  online: boolean
-  signature: string
-  signatureVersion: number
-  signatureStatus: SignatureStatus
-  _discriminator: ResultDiscriminator
-}
-
-export enum ResultDiscriminator {
-  ClockingEvent = 'clockingEvent'
-}
-
-export enum AppVersion {
-  The291 = '2.9.1'
+  cnpj?: string
+  caepf?: string
+  cnoNumber?: string
+  pis?: string
+  cpfNumber?: string
+  createdAt?: string
+  appVersion?: string
+  platform?: string
+  device?: Device | null
+  geolocation?: Geolocation | null
+  employee?: Employee | null
+  readed?: boolean
+  fenceState?: string
+  connectionType?: string
+  use?: number
+  appointmentId?: string
+  mode?: string
+  online?: boolean
+  signature?: string
+  signatureVersion?: number
+  signatureStatus?: string
+  origin?: string
+  nsrNumber?: number
+  timeZone?: string
+  deviceTimeZone?: string
+  arpId?: string
+  arpSyncDate?: string
+  arpHash?: string
+  _discriminator?: string
 }
 
 export interface Device {
@@ -42,8 +46,25 @@ export interface Device {
   model?: string
   imei?: string
   status?: string
+  activations?: unknown[]
   _discriminator?: string
   $ref?: string
+}
+
+export interface HeadQuarter {
+  id?: string
+  code?: number
+  name?: string
+  dataOrigin?: string
+  externalId?: string
+}
+
+export interface CostCenter {
+  id?: string
+  code?: string
+  name?: string
+  dataOrigin?: string
+  externalId?: string
 }
 
 export interface Employee {
@@ -51,52 +72,77 @@ export interface Employee {
   externalId?: string
   name?: string
   pis?: string
+  cpfNumber?: string
   mail?: string
-  company?: Company
+  company?: Company | null
+  managers?: unknown[]
   platformUserName?: string
-  biometricPatterns?: any[]
-  lastUpdate?: Date
-  fences?: any[]
+  platformUsers?: { id?: string; username?: string }[]
+  biometricPatterns?: unknown[]
+  lastUpdate?: string
+  fences?: unknown[]
   enabled?: boolean
   dataOrigin?: string
   registrationNumber?: number
   employeeType?: string
+  pushMessages?: unknown[]
+  pushFCMToken?: string
+  deviceTypeToken?: string
+  arpId?: string
+  arpSyncDate?: string
+  shift?: string
+  workSchedule?: string
+  timeTable?: string
+  externalControlTimezone?: boolean
+  headQuarter?: HeadQuarter | null
+  costCenter?: CostCenter | null
   _discriminator?: string
   $ref?: string
 }
 
 export interface Company {
-  id: string
-  cnpj: string
-  name: string
-  dataOrigin: string
-  _discriminator: string
+  id?: string
+  cnpj?: string
+  name?: string
+  dataOrigin?: string
+  timezone?: string
+  headquarters?: boolean
+  externalId?: string
+  cnoNumber?: string
+  caepf?: string
+  arpId?: string
+  arpSyncDate?: string
+  address?: Address | null
+  legalRepresentativeIdentifier?: number | string
+  employerType?: string
+  externalControlTimezone?: boolean
+  headQuarter?: HeadQuarter | null
+  _discriminator?: string
 }
 
-export enum FenceState {
-  NoFence = 'NO_FENCE'
+export interface Address {
+  id?: string
+  cep?: string
+  address?: string
+  number?: string
+  complement?: string
+  neighborhood?: string
+  city?: string
+  state?: string
+  country?: string
 }
 
 export interface Geolocation {
-  id: string
+  id?: string
   latitude: number
   longitude: number
-  dateAndTime: Date
-  _discriminator: GeolocationDiscriminator
+  dateAndTime?: string
+  _discriminator?: string
 }
 
-export enum GeolocationDiscriminator {
-  Location = 'location'
+/** A record keeps the API metadata alongside its absolute instant. */
+export interface AttendanceEvent extends ClockingEvent {
+  timestamp: Date
 }
 
-export enum Mode {
-  Single = 'SINGLE'
-}
-
-export enum Platform {
-  Ios = 'ios'
-}
-
-export enum SignatureStatus {
-  Checked = 'CHECKED'
-}
+export type Result = ClockingEvent

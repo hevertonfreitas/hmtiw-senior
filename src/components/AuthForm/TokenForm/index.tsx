@@ -5,30 +5,37 @@ import {
   FormLabel,
   Input
 } from '@chakra-ui/react'
+import { useState } from 'react'
 
-type TokenFormProps = {
-  onSubmit: (token: string) => void
-}
+type TokenFormProps = { onSubmit: (token: string) => void }
 
 export const TokenForm = ({ onSubmit }: TokenFormProps) => {
-  const handleOnSubmit: React.FormEventHandler<HTMLFormElement> = (event) => {
-    event?.preventDefault()
-    if (!event.currentTarget.token.value) return
-    onSubmit(event.currentTarget.token.value)
+  const [token, setToken] = useState('')
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = (event) => {
+    event.preventDefault()
+    if (token.trim()) onSubmit(token.trim())
   }
-
   return (
-    <form onSubmit={handleOnSubmit}>
-      <FormControl textAlign="center">
-        <FormLabel htmlFor="token" fontWeight="bold">
+    <form onSubmit={handleSubmit}>
+      <FormControl isRequired>
+        <FormLabel htmlFor="senior-token" fontSize="sm">
           Token de autenticação
         </FormLabel>
-        <Input placeholder="Token" id="token" required />
-        <FormHelperText>Token obtido no login na Senior</FormHelperText>
-        <Button type="submit" mt="4" width="full">
-          Continuar
-        </Button>
+        <Input
+          id="senior-token"
+          type="password"
+          autoComplete="off"
+          placeholder="Cole seu token Senior"
+          value={token}
+          onChange={(event) => setToken(event.target.value)}
+        />
+        <FormHelperText>
+          Use o token obtido ao entrar na plataforma Senior.
+        </FormHelperText>
       </FormControl>
+      <Button type="submit" mt={5} width="full">
+        Acessar meu painel
+      </Button>
     </form>
   )
 }
